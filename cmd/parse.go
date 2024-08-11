@@ -37,6 +37,11 @@ func handleFlags(cmd *cobra.Command, xidArg string) error {
 		fmt.Println(err)
 		return err
 	}
+	all, err := cmd.Flags().GetBool("all")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
 	if time {
 		t, err := ixid.Time(xidArg)
@@ -68,6 +73,36 @@ func handleFlags(cmd *cobra.Command, xidArg string) error {
 			return err
 		}
 		fmt.Println(u)
+	} else if all {
+		t, err := ixid.Time(xidArg)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Time:", t.String())
+
+		m, err := ixid.Machine(xidArg)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Machine: 0x%x 0x%x 0x%x\n", m[0], m[1], m[2])
+
+		p, err := ixid.Pid(xidArg)
+		if err != nil {
+			return err
+		}
+		fmt.Println("PID:", p)
+
+		c, err := ixid.Counter(xidArg)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Counter:", c)
+
+		u, err := ixid.UnixTime(xidArg)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Unix Time:", u)
 	}
 
 	return nil
@@ -79,7 +114,9 @@ var parseCmd = &cobra.Command{
 	Short: "Parse xid",
 	Long: `Parse subfields of xid.
 	
-	With no xid, read standard input`,
+	With no xid, read standard input
+	If no flags are provided, all fields are printed
+	"all" option prints all fields in human readable format`,
 	ValidArgs: []string{"xid"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var xidArg string
@@ -114,6 +151,6 @@ func init() {
 	parseCmd.Flags().BoolP("machine", "m", false, "Machine ID of xid")
 	parseCmd.Flags().BoolP("pid", "p", false, "PID of xid")
 	parseCmd.Flags().BoolP("counter", "c", false, "Counter of xid")
-	parseCmd.MarkFlagsMutuallyExclusive("time", "machine", "pid", "counter", "unix-time")
-	parseCmd.MarkFlagsOneRequired("time", "machine", "pid", "counter", "unix-time")
+	parseCmd.Flags().BoolP("all", "a", false, "All fields of xid")
+	parseCmd.MarkFlagsMutuallyExclusive("time", "machine", "pid", "counter", "unix-time", "all")
 }
